@@ -20,24 +20,31 @@ description: >-
 | 路径 | 用途 |
 |---|---|
 | `~/Documents/CIE-ms/` | **Mark Scheme / Question Paper 永久缓存**（PDF 原文件 + `index.json` 答案键索引）。跨会话复用，勿放临时工作区。 |
-| `<workspace>/texroot/TinyTeX/bin/universal-darwin/xelatex` | LaTeX 编译器（本机已装 ctex/geometry/tcolorbox/fancyhdr/booktabs/tabularx；无 mhchem，化学式用 `\mathrm{}` 手写）。若不存在则先探测 `$PATH` 中的 xelatex。 |
+| `<workspace>/texroot/TinyTeX/bin/universal-darwin/xelatex`（macOS）/ MiKTeX 的 `xelatex`（Windows，装完即在 PATH） | LaTeX 编译器（本机已装 ctex/geometry/tcolorbox/fancyhdr/booktabs/tabularx；无 mhchem，化学式用 `\mathrm{}` 手写）。若不存在则探测 `$PATH`，仍没有就走「环境自检」跑安装脚本。 |
 | `<workspace>/pylibs` | Python 库：pymupdf(fitz)、PIL。渲染扫描页、裁剪放大、抽取 PDF 文本都靠它。 |
 
 首次使用若缓存目录不存在：`mkdir -p ~/Documents/CIE-ms`（需要沙箱外写权限时用一次性提权并说明原因）。
 
 ## 环境自检（新机器第一次运行必做）
 
-判题前先探测三样东西：
+判题前先探测：
 ```bash
-command -v xelatex || ls <workspace>/texroot/TinyTeX/bin/universal-darwin/xelatex 2>/dev/null
+command -v xelatex || ls <workspace>/texroot/TinyTeX/bin/universal-darwin/xelatex 2>/dev/null || ls ~/.TinyTeX/bin/universal-darwin/xelatex 2>/dev/null
 python3 -c "import pymupdf, PIL; print('PY-OK')" 2>/dev/null
 ```
-缺什么按下面补（动手前先告诉用户要装什么、多大、大概多久，取得同意）：
+**任一项缺失（同学的机器通常全是缺的）⇒ 不要问用户"能不能装 TeX/Python"这类问题——对方不懂技术，提问只会卡住流程。** 正确做法：
 
-- **缺 pymupdf/PIL**：`python3 -m pip install --user pymupdf pillow`（1 分钟内）。若连 `python3` 都没有：macOS 跑 `xcode-select --install`（弹窗确认，等 Command Line Tools 装完，约 5–10 分钟）。
-- **缺 xelatex**：装 TinyTeX —— `curl -sL "https://yihui.org/tinytex/install-bin-universal.sh" | sh`，然后把 `$HOME/.TinyTeX/bin/universal-darwin` 加进本会话 PATH 再编译。⚠ 下载几百 MB、10 分钟起步，务必先征得同意；`ctex/tcolorbox` 等宏包缺时 tlmgr 会现场补。
-- **用户拒绝安装或网络不通**：明确降级——只能产出 Markdown/纯文本版错题清单 + MS 原文摘录，**没有可打印 LaTeX PDF**；不要把没有编译验证过的 tex 当成品交付。
-- 环境装好后本会话内记住新路径，不必反复探测；跨会话重新自检即可。
+1. 告知一句：「第一次使用，我自动帮你配置环境，约 10–20 分钟，之后每次都是秒开」；
+2. 无人值守跑仓库里的初始化脚本（幂等，可重复跑）：
+   ```bash
+   # macOS：
+   bash <本仓库路径>/setup/setup.sh
+   # Windows（PowerShell；Win10 1809+/Win11 自带 winget）：
+   powershell -ExecutionPolicy Bypass -File <本仓库路径>/setup/setup.ps1
+   ```
+   两者依次装：Python（macOS 靠 Command Line Tools / Windows 靠 winget）→ pymupdf/pillow → LaTeX（macOS 装 TinyTeX；Windows 装 MiKTeX 并开 `AutoInstall=1`，编译时缺宏包自动现拉）→ 按 `setup/manifest.txt` 预热全班常用 134 份试卷 PDF（9701/9702/9709，≈27MB）进 `~/Documents/CIE-ms/` 并生成 `index.json`；总耗时约 10–20 分钟，首步需网络；
+3. 完成后复检上面两条探测命令，通过即继续正常流程；
+4. 只有网络失败或用户**明确拒绝**时才降级：交付 Markdown/纯文本错题清单 + MS 原文摘录，注明「可打印 PDF 需装好 LaTeX 后重跑」；setup.sh 个别失败项见 `~/Documents/CIE-ms/.warm_fail.txt`，判题时按第 3 步兜底重试即可。
 
 ## 流程总览（按顺序执行）
 
@@ -120,10 +127,11 @@ json.dump(idx, open(os.path.expanduser('~/Documents/CIE-ms/index.json'),'w'), in
 
 编译（跑两遍出交叉引用）：
 ```bash
-export PATH="<workspace>/texroot/TinyTeX/bin/universal-darwin:$PATH"
+export PATH="<workspace>/texroot/TinyTeX/bin/universal-darwin:$PATH"   # 或 $HOME/.TinyTeX/bin/universal-darwin
 xelatex -interaction=nonstopmode doc.tex && xelatex -interaction=nonstopmode doc.tex
 grep -c '^!' doc.log        # 必须为 0
 ```
+Windows：直接 `xelatex -interaction=nonstopmode doc.tex` 跑两遍（MiKTeX 已在 PATH；缺宏包会在编译时自动弹下载，命令行加 `--halt-on-error` 时注意等待其完成，勿因中间 warning 误判失败）。
 
 **LaTeX 硬性注意（踩过的坑）**：
 - 单页卡片外层 tcolorbox **不要加 `breakable`**，内部不要用 `tabularx`——否则整盒被推下一页、版面崩坏。用定宽 `p{...}` tabular 或干脆不用表格。

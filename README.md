@@ -1,6 +1,6 @@
 # CIE 错题整理助手（cie-cuoti）
 
-把「上传一份带红笔批改的试卷/练习册扫描件 → 产出一份可打印的错题 PDF」的整套流程固化成了一个 AI Agent **Skill**。
+把「上传一份带红笔批改的试卷/练习册扫描件 → 产出一份可打印的错题 PDF」的整套流程固化成了一个 AI Agent **Skill**。macOS 和 Windows 都支持，**新同学零技术门槛：第一次用会全自动配好环境**。
 
 它能做两件事：
 
@@ -22,35 +22,54 @@ cie-cuoti/
 │           ├── preamble.tex         ← LaTeX 公共导言区（ctex + a4 + tcolorbox）
 │           ├── template_redo.tex    ← 「重做卷」模板
 │           └── template_notebook.tex← 「错题本」模板
-└── prompt/
-    └── CIE错题整理助手提示词.txt    ← 纯提示词版（不装 Skill 也能用，见下文方案 B）
+├── prompt/
+│   └── CIE错题整理助手提示词.txt    ← 纯提示词版（不装 Skill 也能用，见方案 B）
+└── setup/
+    ├── setup.sh                     ← macOS 一键环境配置
+    ├── setup.ps1                    ← Windows 一键环境配置
+    ├── warm_ms.sh + manifest.txt    ← 预热全班 134 份试卷缓存（两平台通用）
+    └── build_index.py               ← 生成答案键索引 index.json
 ```
 
-## 怎么装（二选一）
+## 怎么装
 
 ### 方案 A：装成 Skill（推荐，效果完整）
 
-适用：你电脑上装了 DeepSeek Harness（DSH）或 Claude Code 这类支持 `SKILL.md` 格式的 Agent 工具。
+适用：电脑上装了 DeepSeek Harness（DSH）或 Claude Code 这类支持 `SKILL.md` 格式的 Agent 工具。
+
+**macOS（终端里逐行粘贴回车）：**
 
 ```bash
 git clone https://github.com/h1284646296-rgb/cie-cuoti.git
-# DSH：
-mkdir -p ~/.dsh/skills
-cp -R cie-cuoti/skill/cie-cuoti ~/.dsh/skills/
-# Claude Code 同理：cp -R 到 ~/.claude/skills/
+mkdir -p ~/.dsh/skills && cp -R cie-cuoti/skill/cie-cuoti ~/.dsh/skills/
 ```
+
+**Windows（PowerShell 窗口里逐行粘贴回车）：**
+
+```powershell
+git clone https://github.com/h1284646296-rgb/cie-cuoti.git
+mkdir $HOME\.dsh\skills -Force; Copy-Item -Recurse cie-cuoti\skill\cie-cuoti $HOME\.dsh\skills\
+```
+
+> Claude Code 用户同理：把 `skill/cie-cuoti` 拷到 `~/.claude/skills/`。
+> 没装 git 也没关系：浏览器打开仓库页 → Code → Download ZIP，解压后把 `skill/cie-cuoti` 文件夹拖进上面说的目录。
 
 然后在 Agent 会话里上传你的试卷 PDF/照片，说一句：
 
 > 用 cie-cuoti 帮我整理这份 9701 化学卷子的错题，出重做卷
 
-它就会自动走完整流程：识别红笔错题 → 核对卷面代码与官方试卷的对应关系 → 找 Mark Scheme → LaTeX 编译 → 交付 PDF。
+### 一键自动配置：第一次跑会发生什么
 
-**依赖（一次性准备）：**
+**你不需要懂 TeX、Python、命令行这些词。** 第一次调用 Skill 时，它检测到环境没配好，会自己跑 `setup/setup.sh`（macOS）或 `setup/setup.ps1`（Windows），全程无人值守，约 10–20 分钟，依次完成：
 
-- LaTeX：任意 `xelatex` 发行版（推荐免费的 [TinyTeX](https://yihui.org/tinytex/)），需要 `ctex`、`tcolorbox`、`fancyhdr`、`booktabs`、`tabularx` 宏包（首次缺包时 tlmgr 会自动补）。
-- Python：`pymupdf`（即 `fitz`）和 `pillow`，用来渲染扫描页、裁图放大：`pip install pymupdf pillow`。
-- **新机器什么都不预装也能跑**：SKILL.md 里有「环境自检」一节，第一次运行时 AI 会探测缺什么并现场引导安装（TinyTeX 要下几百 MB、约 10 分钟，会先征求你同意）。只有拒绝安装 LaTeX 时才没有可打印 PDF，届时退化为 Markdown 错题清单。
+| 步骤 | macOS | Windows |
+|---|---|---|
+| Python 3 | 装 Xcode Command Line Tools | `winget install Python` |
+| PDF 处理库 | `pip install pymupdf pillow` | 同左 |
+| LaTeX 引擎（出 PDF 用） | TinyTeX（几百 MB） | MiKTeX（几百 MB，缺宏包自动现装） |
+| 真题缓存 | 按下表清单预热 `Documents/CIE-ms/`（134 份 ≈ 27MB，2–5 分钟） | 同左 |
+
+配好后它才会开始判你的错题；之后每次都是秒开。脚本可重复跑（已装好的自动跳过），也可先手动跑一遍：`bash setup/setup.sh` / `powershell -File setup/setup.ps1`。
 
 ### 方案 B：只用提示词（最省事）
 
@@ -60,15 +79,9 @@ cp -R cie-cuoti/skill/cie-cuoti ~/.dsh/skills/
 
 ## 关于 Mark Scheme（重要）
 
-**本仓库不包含任何 CIE 真题/Mark Scheme 文件** —— 它们是剑桥国际考评部（Cambridge University Press & Assessment, UCLES）的版权材料，不允许在这里分发。
+**本仓库不包含任何 CIE 真题/Mark Scheme 文件** —— 它们是剑桥国际考评部（Cambridge University Press & Assessment, UCLES）的版权材料，不允许在这里分发。仓库只提供自动化脚本，文件由各人本机自行获取。
 
-Skill 采用的策略是：
-
-1. 首次使用时自动在 `~/Documents/CIE-ms/` 建立你本人的缓存目录；
-2. 需要某份 Mark Scheme 时优先查本地缓存，没有则按 SKILL.md 中的说明自行获取，之后长期复用；
-3. 找不到就明确标「未找到官方 Mark Scheme」，**绝不编造评分标准**。
-
-**第一次运行不会全量下载。** 缓存目录起初是空的；只有**本次错题实际命中的那几份卷子**（比如 3 道错题出自 9701/11 S15、9701/12 W21、9709/52 M20，就只取这 3 份的 MS，必要时连同原卷 QP 做代码核对，单个文件约 70KB–800KB）。取回的文件永久缓存并写进 `index.json` 索引，越用越快；从没做错过的科目一个文件都不会拉。
+预热清单（`setup/manifest.txt`）覆盖**本班常用科目 9701 化学 / 9702 生物 / 9709 数学的 134 份试卷**——初始化时一次性拉取缓存，本班同学的错题基本不再需要联网。清单之外的卷子（比如换了科目或年份）由 Skill 判题时按需获取并补进缓存；拿不到就明确标「未找到官方 Mark Scheme」，**绝不编造评分标准**。
 
 获取渠道、合规边界由使用者自行把握（不少学校有 Official 下载渠道；Cambridge 官网近年也已公开部分历年真题）。
 
@@ -77,6 +90,7 @@ Skill 采用的策略是：
 - 拍照/扫描时保证红笔批改痕迹清晰，缺页会被列入「待补拍」而不是瞎猜。
 - 第一次用的时候告诉它科目代码（9701 化学 / 9702 生物 / 9709 数学 / 0620 IGCSE 化学等），能少一轮确认。
 - 双面打印重做卷 = 题卡与评分标准一一对应的纸质错题本。
+- Windows 同学若 LaTeX 弹包下载中断，重跑一次 setup.ps1 即可（幂等）。
 
 ## 版权声明
 
