@@ -25,6 +25,20 @@ description: >-
 
 首次使用若缓存目录不存在：`mkdir -p ~/Documents/CIE-ms`（需要沙箱外写权限时用一次性提权并说明原因）。
 
+## 环境自检（新机器第一次运行必做）
+
+判题前先探测三样东西：
+```bash
+command -v xelatex || ls <workspace>/texroot/TinyTeX/bin/universal-darwin/xelatex 2>/dev/null
+python3 -c "import pymupdf, PIL; print('PY-OK')" 2>/dev/null
+```
+缺什么按下面补（动手前先告诉用户要装什么、多大、大概多久，取得同意）：
+
+- **缺 pymupdf/PIL**：`python3 -m pip install --user pymupdf pillow`（1 分钟内）。若连 `python3` 都没有：macOS 跑 `xcode-select --install`（弹窗确认，等 Command Line Tools 装完，约 5–10 分钟）。
+- **缺 xelatex**：装 TinyTeX —— `curl -sL "https://yihui.org/tinytex/install-bin-universal.sh" | sh`，然后把 `$HOME/.TinyTeX/bin/universal-darwin` 加进本会话 PATH 再编译。⚠ 下载几百 MB、10 分钟起步，务必先征得同意；`ctex/tcolorbox` 等宏包缺时 tlmgr 会现场补。
+- **用户拒绝安装或网络不通**：明确降级——只能产出 Markdown/纯文本版错题清单 + MS 原文摘录，**没有可打印 LaTeX PDF**；不要把没有编译验证过的 tex 当成品交付。
+- 环境装好后本会话内记住新路径，不必反复探测；跨会话重新自检即可。
+
 ## 流程总览（按顺序执行）
 
 ### 0. 确认输入

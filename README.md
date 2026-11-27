@@ -48,9 +48,9 @@ cp -R cie-cuoti/skill/cie-cuoti ~/.dsh/skills/
 
 **依赖（一次性准备）：**
 
-- LaTeX：任意 `xelatex` 发行版即可（推荐免费的 [TinyTeX](https://yihui.org/tinytex/)），需要 `ctex`、`tcolorbox`、`fancyhdr`、`booktabs`、`tabularx` 这几个宏包（TinyTeX 首次缺包时会自动装）。
+- LaTeX：任意 `xelatex` 发行版（推荐免费的 [TinyTeX](https://yihui.org/tinytex/)），需要 `ctex`、`tcolorbox`、`fancyhdr`、`booktabs`、`tabularx` 宏包（首次缺包时 tlmgr 会自动补）。
 - Python：`pymupdf`（即 `fitz`）和 `pillow`，用来渲染扫描页、裁图放大：`pip install pymupdf pillow`。
-- 没有 TinyTeX/pylibs 也能跑：SKILL.md 会先探测 `$PATH` 里的 `xelatex`，没有就提示。
+- **新机器什么都不预装也能跑**：SKILL.md 里有「环境自检」一节，第一次运行时 AI 会探测缺什么并现场引导安装（TinyTeX 要下几百 MB、约 10 分钟，会先征求你同意）。只有拒绝安装 LaTeX 时才没有可打印 PDF，届时退化为 Markdown 错题清单。
 
 ### 方案 B：只用提示词（最省事）
 
@@ -67,6 +67,8 @@ Skill 采用的策略是：
 1. 首次使用时自动在 `~/Documents/CIE-ms/` 建立你本人的缓存目录；
 2. 需要某份 Mark Scheme 时优先查本地缓存，没有则按 SKILL.md 中的说明自行获取，之后长期复用；
 3. 找不到就明确标「未找到官方 Mark Scheme」，**绝不编造评分标准**。
+
+**第一次运行不会全量下载。** 缓存目录起初是空的；只有**本次错题实际命中的那几份卷子**（比如 3 道错题出自 9701/11 S15、9701/12 W21、9709/52 M20，就只取这 3 份的 MS，必要时连同原卷 QP 做代码核对，单个文件约 70KB–800KB）。取回的文件永久缓存并写进 `index.json` 索引，越用越快；从没做错过的科目一个文件都不会拉。
 
 获取渠道、合规边界由使用者自行把握（不少学校有 Official 下载渠道；Cambridge 官网近年也已公开部分历年真题）。
 
