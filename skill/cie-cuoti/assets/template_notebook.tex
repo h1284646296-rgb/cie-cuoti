@@ -1,0 +1,84 @@
+% ===== cie-cuoti 模板：错题本（九字段卡片，可复制整理用）=====
+% 用法：复制本文件与 preamble.tex 到工作区，替换 <<...>> 占位后 xelatex 编译两遍。
+% ⚠ 填充文本中的特殊字符必须转义：文件名里的下划线写 \_（如 蜜蜂试卷\_XXXXXX.pdf），& % # $ 同理。
+% 字段顺序固定：题号/题目原文/练习册来源/试卷类型/年份与考季/分值/正确答案/答案来源/评分要点
+\documentclass[10.5pt]{article}
+\input{preamble}          % 即 assets/preamble.tex，同目录复制
+
+% ---------- 错题卡片 ----------
+% ⚠ 不要加 breakable、不要用 tabularx：单页卡片会整盒跳页导致版面崩坏。
+\newcommand{\qcard}[2]{%
+\par\vspace{2.5mm}\noindent
+\begin{tcolorbox}[enhanced,colback=white,colframe=mainc!60!black,boxrule=0.8pt,arc=1.5mm,
+  title={\bfseries #1},colbacktitle=mainc!12,coltitle=mainc!60!black,fonttitle=\normalsize,
+  left=2mm,right=2mm,top=1.2mm,bottom=1.2mm]
+\begin{tabular}{@{}>{\bfseries\color{gray!55!black}}p{23mm} p{\dimexpr\linewidth-23mm-2\tabcolsep\relax}@{}}
+#2
+\end{tabular}
+\end{tcolorbox}}
+
+\renewcommand{\arraystretch}{1.18}
+\newcommand{\row}[2]{\textbf{#1：} & #2 \\}
+
+\begin{document}
+\pagestyle{fancy}\fancyhf{}
+\fancyhead[L]{\small\itshape CIE <<科目代码>> 错题本（<<来源文件名>>）}
+\fancyhead[R]{\small <<科目名>> · 错题本}
+\fancyfoot[C]{\small\thepage}
+\renewcommand{\headrulewidth}{0.4pt}
+
+\begin{center}
+  {\LARGE\bfseries\color{mainc} CIE <<科目代码>> 错题本}\\[2mm]
+  {\small 来源：《<<来源文件名>>》（<<主题范围>>，练习册印刷页 pp.<<页码范围>>）\\[1mm]
+  错题判定：卷面黑笔为学生作答，红笔为批改订正；凡有红笔更正／红笔叉号者收录\\[1mm]
+  整理日期：\today}
+\end{center}
+
+\vspace{1mm}
+\begin{tcolorbox}[enhanced,colback=accc!5,colframe=accc!60,boxrule=0.7pt,arc=1.2mm,left=2.5mm,right=2.5mm]
+\textbf{核对说明}（按实际情况保留/删减条目）
+\begin{enumerate}
+  \item 练习册题号旁的小代码为「考季--试卷--题号」；经逐题与原卷比对，个别代码与真题实际位置不符（练习册排版笔误），已在各题「练习册来源」注明真实出处。
+  \item 扫描缺页无法判定的题目未收录，请补拍。
+  \item 所有答案均取自官方 Mark Scheme（本地缓存 \texttt{$\sim$/Documents/CIE-ms/}），卷面红笔仅作比对参考；红笔与官方冲突时以官方为准并标注 ⚠。
+\end{enumerate}
+\end{tcolorbox}
+
+\section*{错题清单（共 <<N>> 题）}
+
+% 示例卡（删除注释后填充）：
+% \qcard{错题 1 · 练习册 Q26}{
+% \row{题号}{Q26（练习册代码 \texttt{s15-11-3}）}
+% \row{题目原文}{$1.00\ \mathrm{g}$ of carbon is combusted \ldots\quad A.\ $1\ \mathrm{dm^3}$\quad B.\ $\ldots$}
+% \row{练习册来源}{扫描第 1 页（印刷页 p.61），题号 26}
+% \row{试卷类型}{Cambridge International AS \& A Level Chemistry 9701, Paper 1 Multiple Choice (AS)}
+% \row{年份与考季}{2015 年 5/6 月（Summer, May/June）}
+% \row{分值}{$1$ 分}
+% \row{正确答案（LaTeX）}{\textbf{A}：$V=\dfrac{0.50}{12}\times 24.0=1.0\ \mathrm{dm^3}$}
+% \row{答案来源}{官方 MS 9701/11 M/J/2015，Q3 Key = A；与卷面红笔标注一致}
+% \row{评分要点}{$n(\mathrm{CO})=\dfrac{0.50}{12}=\dfrac{1}{24}\ \mathrm{mol}$；r.t.p. 下 $V_m=24.0\ \mathrm{dm^3\,mol^{-1}}$，故 $V=1.0\ \mathrm{dm^3}$}
+% }
+
+<<全部 qcard>>
+
+% ==================== 附录 ====================
+\clearpage
+\section*{附录 A：已判对、未收录的题目}
+\begin{center}
+\renewcommand{\arraystretch}{1.35}
+\begin{tabular}{cllcl}
+\toprule
+练习册题号 & 出处（科目/试卷+题号） & 官方 Key & 学生作答 & 备注 \\
+\midrule
+<<表格行>>
+\bottomrule
+\end{tabular}
+\end{center}
+
+\vspace{4mm}
+\section*{附录 B：待补充}
+\begin{enumerate}
+  \item <<缺页/看不清/需确认事项>>
+\end{enumerate}
+
+\end{document}
